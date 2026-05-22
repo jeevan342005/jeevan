@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>N-Queens Visualizer</title>
+
+    <style>
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body{
+
+            font-family: Arial, sans-serif;
+
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background Glow */
+
+        body::before{
+
+            content: "";
+
+            position: absolute;
+
+            width: 500px;
+            height: 500px;
+
+            background: rgba(0,255,255,0.15);
+
+            border-radius: 50%;
+
+            top: -180px;
+            left: -180px;
+
+            filter: blur(120px);
+
+            animation: glow1 8s infinite alternate;
+        }
+
+        body::after{
+
+            content: "";
+
+            position: absolute;
+
+            width: 450px;
+            height: 450px;
+
+            background: rgba(140,0,255,0.18);
+
+            border-radius: 50%;
+
+            bottom: -150px;
+            right: -150px;
+
+            filter: blur(120px);
+
+            animation: glow2 10s infinite alternate;
+        }
+
+        @keyframes glow1{
+
+            from{
+                transform: translate(0,0);
+            }
+
+            to{
+                transform: translate(80px,100px);
+            }
+        }
+
+        @keyframes glow2{
+
+            from{
+                transform: translate(0,0);
+            }
+
+            to{
+                transform: translate(-90px,-80px);
+            }
+        }
+
+        /* Floating Text */
+
+        .floating-text{
+
+            position: absolute;
+
+            top: 8%;
+            left: -20%;
+
+            font-size: 40px;
+
+            color: rgba(255,255,255,0.05);
+
+            white-space: nowrap;
+
+            transform: rotate(-18deg);
+
+            animation: floatText 16s linear infinite;
+        }
+
+        @keyframes floatText{
+
+            from{
+                transform: translateX(0) rotate(-18deg);
+            }
+
+            to{
+                transform: translateX(400px) rotate(-18deg);
+            }
+        }
+
+        /* Main Container */
+
+        .container{
+
+            width: 90%;
+            max-width: 850px;
+
+            background: rgba(255,255,255,0.08);
+
+            backdrop-filter: blur(15px);
+
+            border-radius: 25px;
+
+            padding: 35px;
+
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+
+            position: relative;
+            z-index: 2;
+
+            text-align: center;
+        }
+
+        h2{
+
+            color: #00e5ff;
+
+            margin-bottom: 12px;
+
+            font-size: 34px;
+        }
+
+        p{
+
+            color: #d8f8ff;
+
+            margin-bottom: 25px;
+
+            font-size: 18px;
+        }
+
+        input{
+
+            width: 100%;
+
+            padding: 14px;
+
+            border: none;
+            border-radius: 15px;
+
+            font-size: 16px;
+
+            outline: none;
+
+            background: rgba(255,255,255,0.95);
+
+            margin-bottom: 20px;
+        }
+
+        button{
+
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+            border-radius: 15px;
+
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+
+            color: white;
+
+            font-size: 18px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+        button:hover{
+
+            transform: scale(1.03);
+
+            box-shadow: 0 0 18px #00c6ff;
+        }
+
+        #board{
+
+            margin-top: 30px;
+
+            display: grid;
+
+            justify-content: center;
+        }
+
+        .cell{
+
+            width: 60px;
+            height: 60px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 35px;
+            font-weight: bold;
+        }
+
+        .white{
+
+            background: #f8fafc;
+            color: black;
+        }
+
+        .black{
+
+            background: #334155;
+            color: white;
+        }
+
+        #result{
+
+            margin-top: 25px;
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            display: none;
+        }
+
+        .success{
+
+            background: rgba(0,255,120,0.15);
+
+            border: 2px solid #00ff95;
+
+            color: #00ffbf;
+        }
+
+        .error{
+
+            background: rgba(255,0,0,0.15);
+
+            border: 2px solid #ff5e5e;
+
+            color: #ff9a9a;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="floating-text">
+    N-QUEENS BACKTRACKING ALGORITHM VISUALIZATION
+</div>
+
+<div class="container">
+
+    <h2>N-Queens Problem Visualizer</h2>
+
+    <p>
+        Solve the N-Queens Problem using Backtracking Algorithm
+    </p>
+
+    <input type="number"
+           id="size"
+           placeholder="Enter value of N (Example: 4)"
+           min="4">
+
+    <button onclick="solveNQueens()">
+        Solve N-Queens
+    </button>
+
+    <div id="result"></div>
+
+    <div id="board"></div>
+
+</div>
+
+<script>
+
+// Check if queen placement is safe
+function isSafe(board, row, col, n){
+
+    // Check left side
+    for(let i = 0; i < col; i++){
+
+        if(board[row][i] === 1){
+            return false;
+        }
+    }
+
+    // Check upper diagonal
+    for(let i = row, j = col; i >= 0 && j >= 0; i--, j--){
+
+        if(board[i][j] === 1){
+            return false;
+        }
+    }
+
+    // Check lower diagonal
+    for(let i = row, j = col; j >= 0 && i < n; i++, j--){
+
+        if(board[i][j] === 1){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Backtracking Function
+function solve(board, col, n){
+
+    if(col >= n){
+        return true;
+    }
+
+    for(let i = 0; i < n; i++){
+
+        if(isSafe(board, i, col, n)){
+
+            board[i][col] = 1;
+
+            if(solve(board, col + 1, n)){
+                return true;
+            }
+
+            board[i][col] = 0;
+        }
+    }
+
+    return false;
+}
+
+// Draw Board
+function drawBoard(board, n){
+
+    let boardDiv = document.getElementById("board");
+
+    boardDiv.innerHTML = "";
+
+    boardDiv.style.gridTemplateColumns =
+        `repeat(${n}, 60px)`;
+
+    for(let i = 0; i < n; i++){
+
+        for(let j = 0; j < n; j++){
+
+            let cell =
+                document.createElement("div");
+
+            cell.classList.add("cell");
+
+            if((i + j) % 2 === 0){
+
+                cell.classList.add("white");
+
+            }else{
+
+                cell.classList.add("black");
+            }
+
+            if(board[i][j] === 1){
+
+                cell.innerHTML = "♛";
+            }
+
+            boardDiv.appendChild(cell);
+        }
+    }
+}
+
+// Solve Button
+function solveNQueens(){
+
+    let n =
+        parseInt(
+            document.getElementById("size").value
+        );
+
+    let resultBox =
+        document.getElementById("result");
+
+    if(isNaN(n) || n < 4){
+
+        resultBox.style.display = "block";
+
+        resultBox.className = "error";
+
+        resultBox.innerHTML =
+            "⚠ Please enter N value greater than or equal to 4";
+
+        return;
+    }
+
+    let board = [];
+
+    for(let i = 0; i < n; i++){
+
+        board.push(new Array(n).fill(0));
+    }
+
+    if(solve(board, 0, n)){
+
+        drawBoard(board, n);
+
+        resultBox.style.display = "block";
+
+        resultBox.className = "success";
+
+        resultBox.innerHTML =
+            "✅ Solution Found Successfully!";
+
+    }else{
+
+        resultBox.style.display = "block";
+
+        resultBox.className = "error";
+
+        resultBox.innerHTML =
+            "❌ No Solution Exists";
+    }
+}
+
+</script>
+
+</body>
+</html>
